@@ -25,5 +25,11 @@ The variables you can attach to the AD Users are as follows:
 * unixHomeDirectory
 * loginShell
 
+To check if everything has been done correctly do the following:
+```
+getent passwd <user>
+ldaplist -vl passwd <user>
+```
+
 ### Disclaimer
 This script has only been tested on Solaris 10 (Update 11) and Solaris 11.3.
