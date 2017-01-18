@@ -40,9 +40,6 @@ read nameServer
 clear
 echo "Generating variables file based on your input..."
 
-SUNOS=`uname -r`
-hostname=`hostname`
-
 cat > variables <<EOF
 domain="$adDomain"
 domain_hostname="$adHostname"
@@ -53,8 +50,6 @@ binduser="$bindUser"
 bindpass="$bindUserPassword"
 ldapservers="$ldapServers"
 nameserver="$nameServer"
-SUNOS="$SUNOS"
-hostname="$hostname"
 EOF
 
 echo "Done..."

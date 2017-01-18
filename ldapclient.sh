@@ -1,4 +1,7 @@
 
+SUNOS=`uname -r`
+hostname=`hostname`
+
 touch /var/ldap/ldap_client_file /var/ldap/ldap_client_cred
 
 searchbase=`echo "DC="$domain | sed -e 's/\./,DC=/g'`

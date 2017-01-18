@@ -29,6 +29,9 @@ fi
 
 . ./variables
 
+SUNOS=`uname -r`
+hostname=`hostname`
+
 
 if [ "$SUNOS" == "5.10" ]; then
 	if [ ! -f /etc/resolv.conf ]; then
