@@ -4,13 +4,23 @@ touch /var/ldap/ldap_client_file /var/ldap/ldap_client_cred
 searchbase=`echo "DC="$domain | sed -e 's/\./,DC=/g'`
 
 ldapclient manual \
--a credentialLevel=self \
--a authenticationMethod=sasl/gssapi \
+-a credentialLevel=proxy \
+-a authenticationMethod=simple \
+-a proxyDN="cn="$binduser","$basedn \
+-a proxyPassword=$bindpass \
 -a defaultSearchBase=$searchbase \
 -a domainName=$domain \
 -a defaultServerList=$ldapservers \
--a attributeMap=passwd:gecos=cn \
+-a attributeMap=group:userpassword=userPassword \
+-a attributeMap=group:memberuid=memberUid \
+-a attributeMap=group:gidnumber=gidNumber \
+-a attributeMap=passwd:gecos=displayName \
+-a attributeMap=passwd:gidnumber=gidNumber \
+-a attributeMap=passwd:uidnumber=uidNumber \
 -a attributeMap=passwd:homedirectory=unixHomeDirectory \
+-a attributeMap=passwd:loginshell=loginShell \
+-a attributeMap=shadow:shadowflag=shadowFlag \
+-a attributeMap=shadow:userpassword=userPassword \
 -a objectClassMap=group:posixGroup=group \
 -a objectClassMap=passwd:posixAccount=user \
 -a objectClassMap=shadow:shadowAccount=user \
@@ -21,3 +31,11 @@ echo ""
 echo "Ldap Client Config Listing:"
 echo ""
 ldapclient list
+
+if [ "$SUNOS" == "5.11" ]; then
+	cp files/nsswitch.ldap /etc/nsswitch.conf
+	nscfg import -f svc:/system/name-service/switch:default
+	sleep 1
+	svccfg -s name-service/switch refresh
+	svcadm refresh name-service/switch
+fi

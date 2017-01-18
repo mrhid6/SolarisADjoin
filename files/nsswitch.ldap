@@ -27,13 +27,13 @@ hosts:      dns ldap files
 # before searching the hosts databases.
 ipnodes:    dns ldap files
 
-networks:   ldap [NOTFOUND=return] files
-protocols:  ldap [NOTFOUND=return] files
-rpc:        ldap [NOTFOUND=return] files
-ethers:     ldap [NOTFOUND=return] files
-netmasks:   ldap [NOTFOUND=return] files
-bootparams: ldap [NOTFOUND=return] files
-publickey:  ldap [NOTFOUND=return] files
+networks:   ldap files
+protocols:  ldap files
+rpc:        ldap files
+ethers:     ldap files
+netmasks:   ldap files
+bootparams: ldap files
+publickey:  ldap files
 
 netgroup:   ldap
 
