@@ -33,9 +33,19 @@ clear
 echo "Ldap servers ip addresses ie list of domain controllers seperated by space (example: 2.2.2.2 3.3.3.3): "
 read ldapServers
 
-clear
-echo "Name server (example: 8.8.8.8)"
-read nameServer
+while true; do
+	clear
+	echo "Name server 1 (example: 8.8.8.8): "
+	read nameServer1
+	if [ "$nameServer1" == "" ]; then
+		echo "ERROR: Please enter Primary Nameserver!"
+	else
+		break;
+	fi
+done
+
+echo "Name server 2 (example: 8.8.8.8): "
+read nameServer2
 
 clear
 echo "Generating variables file based on your input..."
@@ -49,7 +59,8 @@ basedn="$baseDN"
 binduser="$bindUser"
 bindpass="$bindUserPassword"
 ldapservers="$ldapServers"
-nameserver="$nameServer"
+nameserver1="$nameServer1"
+nameserver2="$nameServer2"
 EOF
 
 echo "Done..."

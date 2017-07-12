@@ -37,7 +37,13 @@ if [ "$SUNOS" == "5.10" ]; then
 	if [ ! -f /etc/resolv.conf ]; then
 		areyousure "File: /etc/resolv.conf Doesn't exist want to fix this? [Y/N]: "
 		echo "domain $domain" > /etc/resolv.conf
-		echo "nameserver $nameserver" >> /etc/resolv.conf
+		echo "search $domain" >> /etc/resolv.conf
+		echo "nameserver $nameserver1" >> /etc/resolv.conf
+		
+		if [ ! "$nameserver2" == "" ]; then
+			echo "nameserver $nameserver2" >> /etc/resolv.conf
+		fi
+		
 		echo "Created /etc/resolv.conf"	
 	fi
 
@@ -53,6 +59,9 @@ if [ "$SUNOS" == "5.10" ]; then
 
 	echo "Enabling NTP Client"
 	svcadm enable ntp4:default
+	
+	echo "Syncing Time with Domain Controller"
+	ntpdate -u "$domain_hostname.$domain"
 	
 	echo ""
 	echo "Enabling DNS client.."
@@ -85,6 +94,9 @@ elif [ "$SUNOS" == "5.11" ]; then
 	echo "Enabling NTP Client"
 	svcadm enable ntp
 	
+	echo "Syncing Time with Domain Controller"
+	ntpdate -u "$domain_hostname.$domain"
+	
 	echo ""
 	echo "Enabling DNS client.."
 	svcadm enable svc:/network/dns/client:default
@@ -93,7 +105,7 @@ elif [ "$SUNOS" == "5.11" ]; then
 	
 	svccfg -s dns/client setprop config/domain = astring: "$domain"
 	svccfg -s dns/client setprop config/search = astring: "$domain"
-	svccfg -s dns/client setprop config/nameserver = net_address: $nameserver
+	svccfg -s dns/client setprop config/nameserver = net_address: $nameserver1 $nameserver2
 	svccfg -s dns/client:default refresh
 	svccfg -s dns/client:default validate
 	
