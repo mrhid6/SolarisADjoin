@@ -17,6 +17,7 @@ ldapclient manual \
 -a attributeMap=group:userpassword=userPassword \
 -a attributeMap=group:memberuid=memberUid \
 -a attributeMap=group:gidnumber=gidNumber \
+-a attributeMap=passwd:uid=sAMAccountName \
 -a attributeMap=passwd:gecos=displayName \
 -a attributeMap=passwd:gidnumber=gidNumber \
 -a attributeMap=passwd:uidnumber=uidNumber \
@@ -24,6 +25,8 @@ ldapclient manual \
 -a attributeMap=passwd:loginshell=loginShell \
 -a attributeMap=shadow:shadowflag=shadowFlag \
 -a attributeMap=shadow:userpassword=userPassword \
+-a attributeMap=shadow:uid=sAMAccountName \
+-a attributeMap=shadow:shadowLastChange=pwdLastSet \
 -a objectClassMap=group:posixGroup=group \
 -a objectClassMap=passwd:posixAccount=user \
 -a objectClassMap=shadow:shadowAccount=user \

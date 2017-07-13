@@ -19,7 +19,6 @@ If you are running Active Directory on Windows Server 2012 and up the **Identity
 You can still add Unix variables to AD users by going to the **Attribute Editor** tab.
 
 The variables you can attach to the AD Users are as follows:
-* uid
 * uidNumber
 * gidNumber
 * unixHomeDirectory

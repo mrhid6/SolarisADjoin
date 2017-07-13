@@ -19,12 +19,20 @@ function areyousure() {
 	done
 }
 
+function copy_nsswitch() {
+	echo ""
+	echo "Copying nsswitch.."
+	cp -pr ./files/nsswitch.* /etc/.
+}
+
 
 areyousure "ADJoin script is about to start do you want to continue? [Y/N]: "
 
 if [ ! -f ./variables ]; then
 	bash set_variables.sh
 fi
+
+chmod -R +x ./*
 
 
 . ./variables
@@ -46,15 +54,12 @@ if [ "$SUNOS" == "5.10" ]; then
 		
 		echo "Created /etc/resolv.conf"	
 	fi
-
-
-	echo ""
-	echo "Copying nsswitch.."
-	cp -pr ./files/nsswitch.* /etc/.
+	
+	copy_nsswitch
 
 	echo ""
 	echo "Configuring NTP"
-	cat ./files/ntp.conf | sed -e "s/%DCDomain/$domain_hostname.$domain/g" > /etc/inet/ntp.conf
+	cat ./files/ntp.conf | sed -e "s/%DCDomain/$nameserver1/g" > /etc/inet/ntp.conf
 	sleep 1
 
 	echo "Enabling NTP Client"
@@ -62,6 +67,10 @@ if [ "$SUNOS" == "5.10" ]; then
 	
 	echo "Syncing Time with Domain Controller"
 	ntpdate -u "$domain_hostname.$domain"
+	
+	echo ""
+	echo "Time is now: "`date`
+	areyousure "Is The Time Correct? [Y/N]: "
 	
 	echo ""
 	echo "Enabling DNS client.."
@@ -78,9 +87,7 @@ if [ "$SUNOS" == "5.10" ]; then
 	fi
 	
 elif [ "$SUNOS" == "5.11" ]; then
-	echo ""
-	echo "Copying nsswitch.."
-	cp -pr ./files/nsswitch.* /etc/.
+	copy_nsswitch
 	nscfg import -f svc:/system/name-service/switch:default
 	sleep 1
 	svccfg -s name-service/switch refresh
@@ -88,7 +95,7 @@ elif [ "$SUNOS" == "5.11" ]; then
 	
 	echo ""
 	echo "Configuring NTP"
-	cat ./files/ntp.conf | sed -e "s/%DCDomain/$domain_hostname.$domain/g" > /etc/inet/ntp.conf
+	cat ./files/ntp.conf | sed -e "s/%DCDomain/$nameserver1/g" > /etc/inet/ntp.conf
 	sleep 1
 
 	echo "Enabling NTP Client"
@@ -96,6 +103,10 @@ elif [ "$SUNOS" == "5.11" ]; then
 	
 	echo "Syncing Time with Domain Controller"
 	ntpdate -u "$domain_hostname.$domain"
+	
+	echo ""
+	echo "Time is now: "`date`
+	areyousure "Is The Time Correct? [Y/N]: "
 	
 	echo ""
 	echo "Enabling DNS client.."
@@ -115,7 +126,7 @@ elif [ "$SUNOS" == "5.11" ]; then
 	
 	if [ ""`dig $hostname"."$domain +short` == "" ]; then
 		echo "Error: Add This host into DNS.. Exiting.."
-		exit
+		exit 1
 	fi
 	
 	svcadm enable ktkt_warn
@@ -126,7 +137,14 @@ echo ""
 areyousure "Do you want to add this Computer to AD? [Y/N]: "
 
 
-./adjoin -f -p $domain_admin_user
+./adjoin -f -v -p $domain_admin_user
+
+adjoin_rc=$?
+
+if [ ! $adjoin_rc == 0 ]; then
+	echo "AD join was unsuccessfull! Exiting.."
+	exit 1
+fi
 sleep 3
 
 echo ""
@@ -146,6 +164,9 @@ cp -pr ./files/pam.conf /etc/.
 if [ "$SUNOS" == "5.11" ]; then
 	cp -pr ./files/pam.d/* /etc/pam.d/.
 fi
+
+### Configure SAMBA!!
+smbadm join -u $domain_admin_user $domain
 
 read -p "Do you want to delete the variables file? [Y/N]: " val
 		case $val in
