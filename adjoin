@@ -811,7 +811,7 @@ newpw=A$newpw
 $verbose "print $newpw | ./ksetpw host/${fqdn}@${realm}"
 if $notdryrun
 then
-    print "$newpw" | ./ksetpw host/${fqdn}@${realm}
+    print "$newpw" | /usr/lib/krb5/ksetpw host/${fqdn}@${realm}
 
     if [[ $? -ne 0 ]]
     then
@@ -973,8 +973,9 @@ do
 	args[${#args[@]}]=-e
 	args[${#args[@]}]=$enctype
 done
+
 rm "$new_keytab"
-print "$newpw"|./ksetpw -n -v $kvno -k "$new_keytab" "${args[@]}" host/${fqdn}@${realm}
+print "$newpw"|/usr/lib/krb5/ksetpw -n -v $kvno -k "$new_keytab" "${args[@]}" host/${fqdn}@${realm}
 
 doKRB5config
 
