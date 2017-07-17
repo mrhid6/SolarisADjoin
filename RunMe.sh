@@ -7,6 +7,7 @@ echo "#     Solaris ADJoin Script    #"
 echo "#  Created by Mr D Richardson  #"
 echo "################################"
 
+chmod -R +x ./*
 
 function areyousure() {
 	while true; do
@@ -30,9 +31,11 @@ areyousure "ADJoin script is about to start do you want to continue? [Y/N]: "
 
 if [ ! -f ./variables ]; then
 	bash set_variables.sh
+	var_rc=$?
+	if [ $var_rc == 1 ]; then
+		exit 1;
+	fi
 fi
-
-chmod -R +x ./*
 
 
 . ./variables
@@ -66,7 +69,7 @@ if [ "$SUNOS" == "5.10" ]; then
 	svcadm enable ntp4:default
 	
 	echo "Syncing Time with Domain Controller"
-	ntpdate -u "$domain_hostname.$domain"
+	ntpdate -u "$nameserver1"
 	
 	echo ""
 	echo "Time is now: "`date`
@@ -102,7 +105,7 @@ elif [ "$SUNOS" == "5.11" ]; then
 	svcadm enable ntp
 	
 	echo "Syncing Time with Domain Controller"
-	ntpdate -u "$domain_hostname.$domain"
+	ntpdate -u "$nameserver1"
 	
 	echo ""
 	echo "Time is now: "`date`
@@ -137,7 +140,7 @@ echo ""
 areyousure "Do you want to add this Computer to AD? [Y/N]: "
 
 
-./adjoin -f -v -p $domain_admin_user
+./adjoin -f -p $domain_admin_user
 
 adjoin_rc=$?
 
@@ -164,9 +167,11 @@ cp -pr ./files/pam.conf /etc/.
 if [ "$SUNOS" == "5.11" ]; then
 	cp -pr ./files/pam.d/* /etc/pam.d/.
 fi
+echo ""
 
-### Configure SAMBA!!
-smbadm join -u $domain_admin_user $domain
+bash ./install_samba.sh
+
+echo ""
 
 read -p "Do you want to delete the variables file? [Y/N]: " val
 		case $val in

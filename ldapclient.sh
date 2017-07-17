@@ -9,8 +9,8 @@ searchbase=`echo "DC="$domain | sed -e 's/\./,DC=/g'`
 ldapclient manual \
 -a credentialLevel=proxy \
 -a authenticationMethod=simple \
--a proxyDN="cn="$binduser","$basedn \
--a proxyPassword=$bindpass \
+-a proxyDN=$proxy_dn \
+-a proxyPassword=$proxy_pass \
 -a defaultSearchBase=$searchbase \
 -a domainName=$domain \
 -a defaultServerList=$ldapservers \

@@ -1,4 +1,38 @@
 #!/bin/bash
+
+function configure_LdapProxyUser() {
+
+	if [ "$1" == "y" ]; then
+		ProxyUserDN=$baseDN
+		ProxyUser=$administrator
+		ProxyUserPass=$administratorPassword
+	else
+		clear
+		echo -e "Enter Location of ProxyUser (example: ou=Proxy,dc=ad,dc=atomia,dc=com): "
+		read ProxyUserDN
+		clear
+		
+		echo -e "Enter ProxyUser username (example: PosixGuest): "
+		read ProxyUser
+		clear
+		
+		echo -e "Enter ProxyUser password: "
+		read -s ProxyUserPass
+	fi
+	
+	ProxyDN="cn=${ProxyUser},${ProxyUserDN}"
+	echo "ProxyDN is : ${ProxyDN}"
+	
+	while true; do
+		read -p "Is The ProxyDN Correct? [Y/N]: " yn
+		case $yn in 
+			[Yy]* ) break;;
+			[Nn]* ) echo "Please Rerun set_variables.sh to start again."; exit 1 ;;
+			* ) echo "Please Enter yes or no.";;
+		esac
+	done
+}
+
 clear
 echo -e "Enter domain name of your AD domain (example: ad.atomia.com): "
 read adDomain
@@ -21,10 +55,10 @@ read baseDN
 
 while true; do
 	clear
-	read -p "Is bind user same as Administrative user? [Y/N]:" yn
+	read -p "Is bind user same as Administrative user? [Y/N]: " yn
 	case $yn in 
-		[Yy]* ) bindUser=$administrator;bindUserPassword=$administratorPassword; break;;
-		[Nn]* ) clear; echo "User to use for binding to the domain (example: PosixGuest): "; read bindUser; clear; echo -e "Bind user password: "; read -s bindUserPassword; break ;;
+		[Yy]* ) configure_LdapProxyUser "y"; break;;
+		[Nn]* ) configure_LdapProxyUser "n"; break ;;
 		* ) echo "Please Enter yes or no.";;
 	esac
 done
@@ -39,6 +73,7 @@ while true; do
 	read nameServer1
 	if [ "$nameServer1" == "" ]; then
 		echo "ERROR: Please enter Primary Nameserver!"
+		sleep 1
 	else
 		break;
 	fi
@@ -56,11 +91,13 @@ domain_hostname="$adHostname"
 domain_admin_user="$administrator"
 domain_admin_pass="$administratorPassword"
 basedn="$baseDN"
-binduser="$bindUser"
-bindpass="$bindUserPassword"
+proxy_dn="$ProxyDN"
+proxy_user="$ProxyUser"
+proxy_pass="$ProxyUserPass"
 ldapservers="$ldapServers"
 nameserver1="$nameServer1"
 nameserver2="$nameServer2"
 EOF
 
 echo "Done..."
+exit 0
