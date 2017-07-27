@@ -28,43 +28,46 @@ function copy_nsswitch() {
 
 function test_DNS() {
 	echo "Testing DNS Client.."
-	
-	digDCARes=`dig $domain_hostname"."$domain +short`
-	digDCPTRRes1=`dig -x $nameserver1 +short`
-	
-	if [ ! "$digDCARes" == "$nameserver1" ]; then
-		echo "Error: DC must be same IP as Nameserver1"
-		exit 1
-	fi
-	
-	if [ ! "$digDCPTRRes1" == "${domain_hostname}.${domain}" ]; then
-		echo "Error: Nameserver1 must be same DNS as DC"
-		exit 1
-	fi
-	
-	printf "Testing DC DNS [A] Record: $digDCARes"
-	printf "Testing DC DNS [PTR] Record: $digDCPTRRes1"
-	
-	digHostARes=`dig $hostname"."$domain +short`
-	digHostPTRRes=`dig -x $digHostARes +short`
-	
-	if [ "$digHostARes" == "" ]; then
-		echo "Error: Please add [A] Record for Host: $hostname"
-		exit 1
-	fi
-	
-	if [ "$digHostPTRRes" == "" ]; then
-		echo "Error: Please add [PTR] Record for Host: $hostname"
-		exit 1
-	fi
-	
-	if [ ! "$digHostPTRRes" == "${hostname}.${domain}" ]; then
-		echo "Error: Record [PTR]:[${digHostPTRRes}] doesn't match Host: ${hostname}.${domain}";
-		exit 1;
-	fi
-	
-	printf "Testing HOST DNS [A] Record: $digHostARes"
-	printf "Testing HOST DNS [PTR] Record: $digHostPTRRes"
+
+        digDCARes=`dig $domain_hostname"."$domain +short | awk '{print tolower($0)}'`
+        digDCPTRRes1=`dig -x $nameserver1 +short | sed 's/.$//'| awk '{print tolower($0)}'`
+
+        printf "Testing DC DNS [A] Record: $digDCARes\n"
+        printf "Testing DC DNS [PTR] Record: $digDCPTRRes1\n"
+
+        if [ ! "$digDCARes" == "$nameserver1" ]; then
+                echo "Error: DC must be same IP as Nameserver1"
+                exit 1
+        fi
+
+        if [ ! "$digDCPTRRes1" == "${domain_hostname}.${domain}" ]; then
+                echo "Error: Nameserver1 must be same DNS as DC"
+                echo "${digDCPTRRes1} <===> ${domain_hostname}.${domain}."
+                exit 1
+        fi
+
+        digHostARes=`dig $hostname"."$domain +short| awk '{print tolower($0)}'`
+        digHostPTRRes=`dig -x $digHostARes +short | sed 's/.$//'| awk '{print tolower($0)}'`
+
+        printf "Testing HOST DNS [A] Record: $digHostARes\n"
+        printf "Testing HOST DNS [PTR] Record: $digHostPTRRes\n"
+
+        if [ "$digHostARes" == "" ]; then
+                echo "Error: Please add [A] Record for Host: $hostname"
+                exit 1
+        fi
+
+        if [ "$digHostPTRRes" == "" ]; then
+                echo "Error: Please add [PTR] Record for Host: $hostname"
+                exit 1
+        fi
+
+        if [ ! "$digHostPTRRes" == "${hostname}.${domain}" ]; then
+                echo "Error: Record [PTR]:[${digHostPTRRes}] doesn't match Host: ${hostname}.${domain}";
+                exit 1;
+        fi
+
+        echo "DNS Test Completed!"
 }
 
 
