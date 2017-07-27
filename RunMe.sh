@@ -26,6 +26,47 @@ function copy_nsswitch() {
 	cp -pr ./files/nsswitch.* /etc/.
 }
 
+function test_DNS() {
+	echo "Testing DNS Client.."
+	
+	digDCARes=`dig $domain_hostname"."$domain +short`
+	digDCPTRRes1=`dig -x $nameserver1 +short`
+	
+	if [ ! "$digDCARes" == "$nameserver1" ]; then
+		echo "Error: DC must be same IP as Nameserver1"
+		exit 1
+	fi
+	
+	if [ ! "$digDCPTRRes1" == "${domain_hostname}.${domain}" ]; then
+		echo "Error: Nameserver1 must be same DNS as DC"
+		exit 1
+	fi
+	
+	printf "Testing DC DNS [A] Record: $digDCARes"
+	printf "Testing DC DNS [PTR] Record: $digDCPTRRes1"
+	
+	digHostARes=`dig $hostname"."$domain +short`
+	digHostPTRRes=`dig -x $digHostARes +short`
+	
+	if [ "$digHostARes" == "" ]; then
+		echo "Error: Please add [A] Record for Host: $hostname"
+		exit 1
+	fi
+	
+	if [ "$digHostPTRRes" == "" ]; then
+		echo "Error: Please add [PTR] Record for Host: $hostname"
+		exit 1
+	fi
+	
+	if [ ! "$digHostPTRRes" == "${hostname}.${domain}" ]; then
+		echo "Error: Record [PTR]:[${digHostPTRRes}] doesn't match Host: ${hostname}.${domain}";
+		exit 1;
+	fi
+	
+	printf "Testing HOST DNS [A] Record: $digHostARes"
+	printf "Testing HOST DNS [PTR] Record: $digHostPTRRes"
+}
+
 
 areyousure "ADJoin script is about to start do you want to continue? [Y/N]: "
 
@@ -41,7 +82,7 @@ fi
 . ./variables
 
 SUNOS=`uname -r`
-hostname=`hostname`
+hostname=`hostname | awk -F"." '{print $1}'`
 
 
 if [ "$SUNOS" == "5.10" ]; then
@@ -80,14 +121,7 @@ if [ "$SUNOS" == "5.10" ]; then
 	svcadm enable svc:/network/dns/client:default
 	svcadm enable name-service-cache
 
-	echo "Testing DNS Client.."
-	dig $domain_hostname"."$domain +short
-	dig -x $nameserver +short
-	
-	if [ ""`dig $hostname"."$domain +short` == "" ]; then
-		echo "Error: Add This host into DNS.. Exiting.."
-		exit
-	fi
+	test_DNS
 	
 elif [ "$SUNOS" == "5.11" ]; then
 	copy_nsswitch
@@ -119,28 +153,23 @@ elif [ "$SUNOS" == "5.11" ]; then
 	
 	svccfg -s dns/client setprop config/domain = astring: "$domain"
 	svccfg -s dns/client setprop config/search = astring: "$domain"
-	svccfg -s dns/client setprop config/nameserver = net_address: $nameserver1 $nameserver2
+	svccfg -s dns/client setprop config/nameserver = net_address: "($nameserver1 $nameserver2)"
 	svccfg -s dns/client:default refresh
 	svccfg -s dns/client:default validate
 	
-	echo "Testing DNS Client.."
-	dig $domain_hostname"."$domain +short
-	dig -x $nameserver +short
-	
-	if [ ""`dig $hostname"."$domain +short` == "" ]; then
-		echo "Error: Add This host into DNS.. Exiting.."
-		exit 1
-	fi
+	test_DNS
 	
 	svcadm enable ktkt_warn
-	
+else
+	echo "Error: Couldn't find Solaris Release Version. Exiting.."
+	exit 1
 fi
 
 echo ""
 areyousure "Do you want to add this Computer to AD? [Y/N]: "
 
 
-./adjoin -f -p $domain_admin_user
+./adjoin -f -p $domain_admin_user -d $domain_hostname"."$domain
 
 adjoin_rc=$?
 
