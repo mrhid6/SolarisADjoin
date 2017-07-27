@@ -35,7 +35,7 @@ fi
 
 while true; do
 	clear
-	echo "Enter list of automounters, F to finish (example: auto_apps): "
+	echo "Enter list of automounters, [F] to finish (example: auto_apps): "
 	echo "Current List: ${automounters_list}"
 	read automounter
 	
