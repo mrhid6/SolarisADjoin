@@ -1,11 +1,15 @@
 #!/bin/bash
 
+VERSION="0.0.2"
 
-
+echo ""
 echo "################################"
 echo "#     Solaris ADJoin Script    #"
 echo "#  Created by Mr D Richardson  #"
 echo "################################"
+echo "#        Version: ${VERSION}        #"
+echo "################################"
+echo ""
 
 chmod -R +x ./*
 
@@ -172,7 +176,7 @@ echo ""
 areyousure "Do you want to add this Computer to AD? [Y/N]: "
 
 
-./adjoin -f -p $domain_admin_user -d $domain_hostname"."$domain
+./adjoin -v -f -p $domain_admin_user -d $domain_hostname"."$domain
 
 adjoin_rc=$?
 
@@ -195,9 +199,11 @@ svcadm enable ldap/client:default
 echo ""
 echo "Copying Pam.conf.."
 cp -pr ./files/pam.conf /etc/.
+chmod 644 /etc/pam.conf
 
 if [ "$SUNOS" == "5.11" ]; then
 	cp -pr ./files/pam.d/* /etc/pam.d/.
+	chmod -R 644 /etc/pam.d
 fi
 echo ""
 
